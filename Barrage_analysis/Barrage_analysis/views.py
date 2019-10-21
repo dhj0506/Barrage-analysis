@@ -1,9 +1,10 @@
 import requests
 import re
+import time
 import datetime
 import json
 from django.views import View
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 
 
 class Barrage:  # 弹幕
@@ -38,9 +39,10 @@ class Barrage:  # 弹幕
 all_barrages = []
 
 
-class ResultView(View):
+class ResultView(View):  # 访问/active-users等各个链接前，先以GET请求访问http://127.0.0.1:8000/result/?input_url=https://www.bilibili.com/bangumi/play/ss26878
     def get(self, request):
-        all_barrages = []
+        n = len(all_barrages)
+        del all_barrages[-n:]
 
         input_url = request.GET.get('input_url', 'https://www.bilibili.com/video/av4014225/')
         # input_url = "https://www.bilibili.com/bangumi/play/ep269854"  # ep形式的链接
@@ -97,4 +99,77 @@ class ResultView(View):
         return JsonResponse(result, safe=False)  # 返回的是获取的弹幕的数量，没什么用，可以不用它
 
     
+class ActiveUsersView(View):  # 使用方法举例：http://127.0.0.1:8000/active-users/?level=3
+    def get(self, request):
+        while len(all_barrages) == 0:
+            time.sleep(0.1)  # 防止弹幕未获取
+        level = int(request.GET.get('level', 1))  # 获取参数level
+        # 弹幕从all_barrages获取，all_barrages类型为列表
+        # 在这里写语句
+
+        return HttpResponse('这里是json字符串', content_type='application/json')  # 这是返回json的方法之一
+
+
+class PlotChangesView(View):  # 使用方法举例：http://127.0.0.1:8000/plot-changes/?level=3
+    def get(self, request):
+        while len(all_barrages) == 0:
+            time.sleep(0.1)  # 防止弹幕未获取
+        level = int(request.GET.get('level', 1))  # 获取参数level
+        # 弹幕从all_barrages获取，all_barrages类型为列表
+        # 在这里写语句
+
+        return HttpResponse('这里是json字符串', content_type='application/json')  # 这是返回json的方法之一
+
+
+class PlayHeatView(View):  # 使用方法举例：http://127.0.0.1:8000/play-heat/
+    def get(self, request):
+        while len(all_barrages) == 0:
+            time.sleep(0.1)  # 防止弹幕未获取
+        # 弹幕从all_barrages获取，all_barrages类型为列表
+        # 在这里写语句
+
+        return HttpResponse('这里是json字符串', content_type='application/json')  # 这是返回json的方法之一
+
+
+class ClassicBarrageView(View):  # 使用方法举例：http://127.0.0.1:8000/classic-barrage/?level=3
+    def get(self, request):
+        while len(all_barrages) == 0:
+            time.sleep(0.1)  # 防止弹幕未获取
+        level = int(request.GET.get('level', 1))  # 获取参数level
+        # 弹幕从all_barrages获取，all_barrages类型为列表
+        # 在这里写语句
+
+        return HttpResponse('这里是json字符串', content_type='application/json')  # 这是返回json的方法之一
+
+
+class EmotionalChangesView(View):  # 使用方法举例：http://127.0.0.1:8000/emotion-changes/
+    def get(self, request):
+        while len(all_barrages) == 0:
+            time.sleep(0.1)  # 防止弹幕未获取
+        # 弹幕从all_barrages获取，all_barrages类型为列表
+        # 在这里写语句
+
+        return HttpResponse('这里是json字符串', content_type='application/json')  # 这是返回json的方法之一
+
+
+class OverallEvaluationView(View):  # 使用方法举例：http://127.0.0.1:8000/overall-evaluation/
+    def get(self, request):
+        while len(all_barrages) == 0:
+            time.sleep(0.1)  # 防止弹幕未获取
+        # 弹幕从all_barrages获取，all_barrages类型为列表
+        # 在这里写语句
+
+        return HttpResponse('这里是json字符串', content_type='application/json')  # 这是返回json的方法之一
+
+
+class FeatureChangesView(View):  # 使用方法举例：http://127.0.0.1:8000/feature-changes/?level=3
+    def get(self, request):
+        while len(all_barrages) == 0:
+            time.sleep(0.1)  # 防止弹幕未获取
+        level = int(request.GET.get('level', 1))  # 获取参数level
+        # 弹幕从all_barrages获取，all_barrages类型为列表
+        # 在这里写语句
+
+        return HttpResponse('这里是json字符串', content_type='application/json')  # 这是返回json的方法之一
+
 

@@ -15,10 +15,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from .views import ResultView
+from .views import ResultView, ActiveUsersView, PlotChangesView, PlayHeatView, ClassicBarrageView, EmotionalChangesView, OverallEvaluationView, FeatureChangesView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('result/', ResultView.as_view(), name='result'),
+    path('admin/', admin.site.urls),  # 没什么用
+    path('result/', ResultView.as_view(), name='result'),  # 爬弹幕
+    path('active-users/', ActiveUsersView.as_view(), name='active-users'),
+    path('plot-changes/', PlotChangesView.as_view(), name='plot-changes'),
+    path('play-heat/', PlayHeatView.as_view(), name='play-heat'),
+    path('classic-barrage/', ClassicBarrageView.as_view(), name='classic-barrage'),
+    path('emotion-changes/', EmotionalChangesView.as_view(), name='emotion-changes'),
+    path('overall-evaluation/', OverallEvaluationView.as_view(), name='result'),
+    path('feature-changes/', FeatureChangesView.as_view(), name='feature-changes'),
 
 ]
