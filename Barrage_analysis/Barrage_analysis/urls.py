@@ -15,10 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from .views import ResultView, ActiveUsersView, PlotChangesView, PlayHeatView, ClassicBarrageView, EmotionalChangesView, OverallEvaluationView, FeatureChangesView
+from .views import ResultView, IndexView, ActiveUsersView, PlotChangesView, PlayHeatView, ClassicBarrageView, EmotionalChangesView, OverallEvaluationView, FeatureChangesView
 
 urlpatterns = [
     path('admin/', admin.site.urls),  # 没什么用
+    path('', IndexView.as_view(), name='index'),  # 主页
     path('result/', ResultView.as_view(), name='result'),  # 爬弹幕
     path('active-users/', ActiveUsersView.as_view(), name='active-users'),
     path('plot-changes/', PlotChangesView.as_view(), name='plot-changes'),

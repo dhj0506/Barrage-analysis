@@ -4,6 +4,7 @@ import time
 import datetime
 import json
 from django.views import View
+from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
 
 
@@ -46,7 +47,7 @@ class ResultView(View):  # 访问/active-users等各个链接前，先以GET请�
 
         input_url = request.GET.get('input_url', 'https://www.bilibili.com/video/av4014225/')
         # input_url = "https://www.bilibili.com/bangumi/play/ep269854"  # ep形式的链接
-        # input_url = "https://www.bilibili.com/bangumi/play/ss26878"  # ss形式的链接
+        # input_url = "https://www.bilibili.com/bangumi/play/ss26878"  # ss形式的链接，这个重点测试
         # input_url = "https://www.bilibili.com/bangumi/play/ep285821?spm_id_from=333.334.b_62696c695f62616e67756d69.8"  # 用于测试
         # print('input_url=' + input_url)
 
@@ -98,7 +99,12 @@ class ResultView(View):  # 访问/active-users等各个链接前，先以GET请�
         result = len(all_barrages)
         return JsonResponse(result, safe=False)  # 返回的是获取的弹幕的数量，没什么用，可以不用它
 
-    
+
+class IndexView(View):
+    def get(self, request):
+        return render(request, "barrage.html", {})
+
+
 class ActiveUsersView(View):  # 使用方法举例：http://127.0.0.1:8000/active-users/?level=3
     def get(self, request):
         while len(all_barrages) == 0:
@@ -106,8 +112,15 @@ class ActiveUsersView(View):  # 使用方法举例：http://127.0.0.1:8000/activ
         level = int(request.GET.get('level', 1))  # 获取参数level
         # 弹幕从all_barrages获取，all_barrages类型为列表
         # 在这里写语句
-
-        return HttpResponse('这里是json字符串', content_type='application/json')  # 这是返回json的方法之一
+        results = {}
+        for barrage in all_barrages:
+            if barrage.user in results:
+                results[barrage.user] += 1
+            else:
+                results[barrage.user] = 1
+        results = list(results.items())
+        results.sort(key=lambda v: v[1], reverse=True)
+        return HttpResponse(json.dumps(results[0:level]), content_type='application/json')  # 这是返回json的方法之一
 
 
 class PlotChangesView(View):  # 使用方法举例：http://127.0.0.1:8000/plot-changes/?level=3
