@@ -6,3 +6,5 @@
 ![image.png](https://i.loli.net/2019/10/22/9FyEldaYfbn37m1.png)
 
 然后配置Project Interpreter，安装requirements.txt中的依赖包。
+
+注意：Python版本需要是3.5或以上，不要使用2.x或3.4
