@@ -26,7 +26,7 @@ urlpatterns = [
     path('play-heat/', PlayHeatView.as_view(), name='play-heat'),
     path('classic-barrage/', ClassicBarrageView.as_view(), name='classic-barrage'),
     path('emotion-changes/', EmotionalChangesView.as_view(), name='emotion-changes'),
-    path('overall-evaluation/', OverallEvaluationView.as_view(), name='result'),
+    path('overall-evaluation/', OverallEvaluationView.as_view(), name='overall-evaluation'),
     path('feature-changes/', FeatureChangesView.as_view(), name='feature-changes'),
 
 ]

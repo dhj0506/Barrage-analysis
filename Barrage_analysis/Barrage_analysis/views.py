@@ -3,6 +3,8 @@ import re
 import time
 import datetime
 import json
+import jieba
+import jieba.analyse
 from django.views import View
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
@@ -38,6 +40,76 @@ class Barrage:  # 弹幕
 
 
 all_barrages = []
+
+
+# 返回词频统计结果
+def word_num(barrages):
+    wf = open('datas1.txt', 'w+')
+    for barrage in barrages:
+        item = barrage.content.strip('\n\r').split('\t')  # 制表格切分
+        tags = jieba.analyse.extract_tags(item[0])  # jieba分词
+        tagsw = "," + "".join(tags)  # 逗号连接切分的词
+        wf.write(tagsw)
+    wf.close()
+    word_lst = []
+    word_dict = {}
+    with open('datas1.txt') as wf1:
+        for word in wf1:
+            word_lst.append(word.split(',')[1:])
+            for item in word_lst:
+                for item2 in item:
+                    if item2 not in word_dict:
+                        word_dict[item2] = 1
+                    else:
+                        word_dict[item2] += 1
+    wf1.close()
+    return word_dict
+
+
+# 情感分析，-5分为极端消极，5分为非常高兴
+def emotion_analyse(barrage):
+    emotion_dic = {}
+    filename = 'BosonNLP_sentiment_score.txt'
+    with open(filename, 'rb') as file:
+        while True:
+            try:
+                sen_list = file.readline().decode('utf-8')
+                sen_list = sen_list[:-1]
+                sen_list = sen_list.split(' ')
+                emotion_dic[sen_list[0]] = sen_list[1]
+            except IndexError:
+                break
+    seg_list = jieba.cut(barrage, cut_all=True)
+    string = "/ ".join(seg_list)
+    string_list = string.split('/')
+    emotion_index = 0
+    for _ in range(len(string_list)):
+        if string_list[_] in emotion_dic:
+            emotion_index += float(emotion_dic[string_list[_]])
+    return emotion_index
+
+
+# 情感分类
+def emotion_classification(score, number):
+    # score表示弹幕的情感得分，number表示选择五种分类还是三种分类，0表示三种，1表示五种
+    if number == 0:
+        if score >= -5 and score < -0.05:
+            return "悲伤"
+        elif score >= -0.05 and score <= 0.05:
+            return "不清楚"
+        else:
+            return "高兴"
+    if number == 1:
+        if score>=-5 and score<-2:
+            return "极度悲伤"
+        elif score>=-2 and score<-0.05:
+            return "轻微悲伤"
+        elif score>=-0.05 and score<=0.05:
+            return "情感模糊"
+        elif score>0.05 and score<=2:
+            return "轻微高兴"
+        else:
+            return "极度高兴"
 
 
 class ResultView(View):  # 访问/active-users等各个链接前，先以GET请求访问http://127.0.0.1:8000/result/?input_url=https://www.bilibili.com/bangumi/play/ss26878
@@ -130,8 +202,23 @@ class PlotChangesView(View):  # 使用方法举例：http://127.0.0.1:8000/plot-
         level = int(request.GET.get('level', 1))  # 获取参数level
         # 弹幕从all_barrages获取，all_barrages类型为列表
         # 在这里写语句
-
-        return HttpResponse('这里是json字符串', content_type='application/json')  # 这是返回json的方法之一
+        rtimes = []
+        results = []
+        num = count = 0
+        for barrage in all_barrages:
+            rtimes.append(barrage.rtime)
+        rtimes.sort()
+        for rtime in rtimes:
+            while True:
+                if num * level <= rtime < (num + 1) * level:
+                    count += 1
+                    break
+                else:
+                    results.append((num * level, count))
+                    num += 1
+                    count = 0
+        results.append((num * level, count))
+        return HttpResponse(json.dumps(results), content_type='application/json')  # 这是返回json的方法之一
 
 
 class PlayHeatView(View):  # 使用方法举例：http://127.0.0.1:8000/play-heat/
@@ -151,8 +238,9 @@ class ClassicBarrageView(View):  # 使用方法举例：http://127.0.0.1:8000/cl
         level = int(request.GET.get('level', 1))  # 获取参数level
         # 弹幕从all_barrages获取，all_barrages类型为列表
         # 在这里写语句
-
-        return HttpResponse('这里是json字符串', content_type='application/json')  # 这是返回json的方法之一
+        words = word_num(all_barrages)
+        result = [v for v in words.items() if v[1] > level]
+        return HttpResponse(json.dumps(result), content_type='application/json')  # 这是返回json的方法之一
 
 
 class EmotionalChangesView(View):  # 使用方法举例：http://127.0.0.1:8000/emotion-changes/
@@ -161,8 +249,13 @@ class EmotionalChangesView(View):  # 使用方法举例：http://127.0.0.1:8000/
             time.sleep(0.1)  # 防止弹幕未获取
         # 弹幕从all_barrages获取，all_barrages类型为列表
         # 在这里写语句
-
-        return HttpResponse('这里是json字符串', content_type='application/json')  # 这是返回json的方法之一
+        results = {}
+        for barrage in all_barrages:
+            if (emotion_classification(emotion_analyse(barrage.content), 1)) in results:
+                results[emotion_classification(emotion_analyse(barrage.content), 1)] += 1
+            else:
+                results[emotion_classification(emotion_analyse(barrage.content), 1)] = 1
+        return HttpResponse(json.dumps(list(results.items())), content_type='application/json')  # 这是返回json的方法之一
 
 
 class OverallEvaluationView(View):  # 使用方法举例：http://127.0.0.1:8000/overall-evaluation/
@@ -171,8 +264,15 @@ class OverallEvaluationView(View):  # 使用方法举例：http://127.0.0.1:8000
             time.sleep(0.1)  # 防止弹幕未获取
         # 弹幕从all_barrages获取，all_barrages类型为列表
         # 在这里写语句
-
-        return HttpResponse('这里是json字符串', content_type='application/json')  # 这是返回json的方法之一
+        results = {'消极': 0, "积极": 0, "其他": 0}
+        for barrage in all_barrages:
+            if (emotion_classification(emotion_analyse(barrage.content), 0)) == '悲伤':
+                results['消极'] += 1
+            elif (emotion_classification(emotion_analyse(barrage.content), 0)) == '高兴':
+                results['积极'] += 1
+            else:
+                results['其他'] += 1
+        return HttpResponse(json.dumps(list(results.items())), content_type='application/json')  # 这是返回json的方法之一
 
 
 class FeatureChangesView(View):  # 使用方法举例：http://127.0.0.1:8000/feature-changes/?level=3
@@ -182,7 +282,7 @@ class FeatureChangesView(View):  # 使用方法举例：http://127.0.0.1:8000/fe
         level = int(request.GET.get('level', 1))  # 获取参数level
         # 弹幕从all_barrages获取，all_barrages类型为列表
         # 在这里写语句
-
-        return HttpResponse('这里是json字符串', content_type='application/json')  # 这是返回json的方法之一
-
-
+        results = []
+        for barrage in all_barrages:
+            results.append((barrage.rtime, emotion_analyse(barrage.content) + 5))
+        return HttpResponse(json.dumps(results), content_type='application/json')  # 这是返回json的方法之一
