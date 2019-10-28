@@ -93,20 +93,20 @@ def emotion_analyse(barrage):
 def emotion_classification(score, number):
     # score表示弹幕的情感得分，number表示选择五种分类还是三种分类，0表示三种，1表示五种
     if number == 0:
-        if score >= -5 and score < -0.05:
+        if -5 <= score < -0.05:
             return "悲伤"
-        elif score >= -0.05 and score <= 0.05:
+        elif -0.05 <= score <= 0.05:
             return "不清楚"
         else:
             return "高兴"
     if number == 1:
-        if score>=-5 and score<-2:
+        if -5 <= score < -2:
             return "极度悲伤"
-        elif score>=-2 and score<-0.05:
+        elif -2 <= score < -0.05:
             return "轻微悲伤"
-        elif score>=-0.05 and score<=0.05:
+        elif -0.05 <= score <= 0.05:
             return "情感模糊"
-        elif score>0.05 and score<=2:
+        elif 0.05 < score <= 2:
             return "轻微高兴"
         else:
             return "极度高兴"
